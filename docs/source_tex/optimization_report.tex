@@ -1,0 +1,2406 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{caption}
+\usepackage{float}
+\usepackage[hidelinks]{hyperref}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[french]{babel}
+
+\onehalfspacing
+
+
+
+\begin{document}
+
+	\tableofcontents
+	
+	\pagebreak
+	
+	\section{Exercice 11 : Analyse des directions de descente}
+	
+	\subsection{Analyse théorique}
+	
+	Soit la fonction $f(x_1, x_2) = \frac{1}{2}x_1^2 + 2x_2^2$. Pour déterminer si une direction $d$ est une direction de descente au point $X_0 = (1, 1)$, elle doit vérifier la condition : $\nabla f(X_0)^T d < 0$. Calcul du gradient :
+	$$
+	\nabla f(x_1, x_2) =
+	\begin{pmatrix}
+	\frac{\partial f}{\partial x_1} \\
+	\frac{\partial f}{\partial x_2}
+	\end{pmatrix}
+	=
+	\begin{pmatrix}
+	x_1 \\
+	4x_2
+	\end{pmatrix}
+	$$
+	Au point $X_0 = (1, 1)$, on a $\nabla f(X_0) =
+	\begin{pmatrix}
+	1 \\
+	4
+	\end{pmatrix}$.
+	Vérification des directions :
+	
+	\begin{itemize}
+		\item[$\bullet$] $d_2 = (-1, -1)$ :\\
+		$\nabla f(X_0)^T d_2 = (1)(-1) + (4)(-1) = -1 - 4 = -5 < 0$. (Direction de descente)
+		
+		\item[$\bullet$] $d_3 = (1, -3)$ :\\
+		$\nabla f(X_0)^T d_3 = (1)(1) + (4)(-3) = 1 - 12 = -11 < 0$. (Direction de descente)
+		
+		\item[$\bullet$] $d_1 = -\nabla f(X_0) = (-1, -4)$ :\\
+		$\nabla f(X_0)^T d_1 = (1)( -1) + (4)(-4) = -1 - 16 = -17 < 0$. (Direction de la plus forte pente).
+	\end{itemize}
+	
+	\subsection{Implémentation Matlab}
+	
+	L figure suivante permet de visualiser la décroissance de la fonction selon les trois directions pour un pas $\alpha \in [0, 1]$.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{fig01exo11.png}
+		\caption{Visualisation}
+		\label{fig:exo11-visualisation}
+	\end{figure}
+	
+	\subsection{Interprétation des résultats}
+	
+	La figure permet de voir clairement que \(d_1=-\nabla f(X_0)\) est la direction la plus efficace parmi les trois. C’est dans cette direction que la fonction diminue le plus rapidement au début, ce qui confirme bien le résultat théorique : l’opposé du gradient donne la direction de plus forte descente.
+	
+	On remarque aussi que toutes les directions de descente ne sont pas équivalentes. Les directions \(d_2\) et \(d_3\) font bien diminuer la fonction au départ, mais moins efficacement que \(d_1\).
+	
+	De plus, la courbe associée à \(d_2\) décroît de manière régulière, tandis que celle de \(d_3\) commence par décroître puis remonte. Cela montre qu’une direction de descente garantit seulement une diminution locale, c’est-à-dire pour des valeurs de \(\alpha\) relativement petites.
+	
+	Ainsi, \(d_1\) est la meilleure direction de descente au point \(X_0\), et le choix du pas \(\alpha\) reste essentiel pour assurer une diminution efficace de la fonction.
+	
+	\section{Exercice 12 : Mise en place d'un code d'optimisation}
+	
+	On s'intéresse au problème
+	\begin{equation}
+	\min_x f(x).
+	\end{equation}
+	
+	\subsection{Simulateur}
+	
+	On considère la fonction définie par
+	\begin{equation}
+	f_0(x)=\frac{1}{2}x_1^2+\frac{9}{2}x_2^2.
+	\end{equation}
+	
+	Son gradient est donné par
+	\begin{equation}
+	\nabla f_0(x)=
+	\begin{pmatrix}
+	x_1\\
+	9x_2
+	\end{pmatrix}.
+	\end{equation}
+	
+	\subsubsection{Fonction Matlab \texttt{simf0.m}}
+	
+	\begin{verbatim}
+	function [f,g] = simf0(x)
+	% x est un vecteur colonne [x1;x2]
+	f = 0.5*x(1)^2 + 4.5*x(2)^2;
+	g = [x(1);9*x(2)];
+	end
+	\end{verbatim}
+	
+	\subsection{Optimiseur}
+	
+	\subsubsection{Solution exacte du problème}
+	
+	La fonction $f_0$ est une forme quadratique strictement convexe. Son minimum est donc atteint au point où le gradient s'annule.
+	
+	On résout alors
+	\begin{equation}
+	\nabla f_0(x)=0
+	\end{equation}
+	soit
+	\begin{equation}
+	\begin{pmatrix}
+	x_1\\
+	9x_2
+	\end{pmatrix}
+	=
+	\begin{pmatrix}
+	0\\
+	0
+	\end{pmatrix}.
+	\end{equation}
+	
+	On obtient alors
+	\begin{equation}
+	x_1=0, \qquad x_2=0.
+	\end{equation}
+	
+	Donc la solution exacte du problème est
+	\begin{equation}
+	x^*=(0,0)^T.
+	\end{equation}
+	
+	\subsubsection{Principe de la méthode de plus forte descente}
+	
+	On choisit comme point de départ
+	\begin{equation}
+	x_0=(9,1)^T,
+	\end{equation}
+	et on prend
+	\begin{equation}
+	\texttt{epsrel}=10^{-8}.
+	\end{equation}
+	
+	À chaque itération, on applique les étapes suivantes :
+	\begin{itemize}
+		\item calcul de la direction de descente
+		\begin{equation}
+		d_k=-\nabla f(x_k),
+		\end{equation}
+		\item calcul du pas optimal $\alpha_k$,
+		\item mise à jour de l'itéré
+		\begin{equation}
+		x_{k+1}=x_k+\alpha_k d_k,
+		\end{equation}
+		\item arrêt lorsque le critère suivant est vérifié :
+		\begin{equation}
+		\|\nabla f(x_k)\|_2 \leq \texttt{epsrel}\,\|\nabla f(x_0)\|_2.
+		\end{equation}
+	\end{itemize}
+	
+	Calcul de la matrice hessienne de $f_0$ :
+	\begin{equation}
+	H=
+	\begin{pmatrix}
+	1 & 0\\
+	0 & 9
+	\end{pmatrix}.
+	\end{equation}
+	
+	Le pas optimal s'écrit alors
+	\begin{equation}
+	\alpha_k = \frac{\|\nabla f(x_k)\|_2^2}{\nabla f(x_k)^T H\nabla f(x_k)}.
+	\end{equation}
+	
+	\subsubsection{Script Matlab \texttt{pfd.m}}
+	
+	Le script Matlab correspondant est le suivant :
+	
+	\begin{verbatim}
+	function [x_k,k,X] = pfd(x_0,epsrel)
+	x_k = x_0;
+	k = 0;
+	[~,g] = simf0(x_k);
+	g0 = norm(g);
+	X = x_k;
+	
+	% hessienne
+	H = [1 0; 0 9];
+	
+	while norm(g) > epsrel*g0
+	% direction
+	d = -g;
+	
+	% pas optimal
+	alpha = (g'*g)/(g'*H*g);
+	
+	% mise a jour
+	x_k = x_k + alpha*d;
+	
+	% recalcul
+	[~,g] = simf0(x_k);
+	% ajout
+	X = [X x_k];
+	%compteur
+	k = k + 1;
+	end
+	end
+	\end{verbatim}
+	
+	\subsection{Tests numériques}
+	
+	\subsubsection{Nombre d'itérations nécessaires à la convergence}
+	
+	En exécutant l'algorithme avec le point initial $x_0=(9,1)^T$ et $\texttt{epsrel}=10^{-8}$, on obtient :
+	
+	\begin{verbatim}
+	[xk,k,X] = pfd([9;1],1e-8);
+	disp(k)
+	\textbf{83}
+	\end{verbatim}
+	
+	L'algorithme converge donc en \textbf{83 itérations}.
+	
+	\subsubsection{Tracé des itérés successifs et des courbes de niveau}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{fig01exo12.png}
+		\caption{Tracé des itérés successifs sur les courbes de niveau de $f_0$.}
+		\label{fig:exo12-trajetoires}
+	\end{figure}
+	
+	\subsubsection{Tracé de $f(x_k)$ et de $\|\nabla f(x_k)\|$ en fonction de $k$}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{fig02exo12.png}
+		\caption{Évolution de $f(x_k)$ et de $\|\nabla f(x_k)\|$ en fonction de $k$.}
+		\label{fig:exo12-evolution}
+	\end{figure}
+	
+	\section{Exercice 13 : Première condition de Wolfe (Diminution suffisante)}
+	
+La première condition de Wolfe, souvent appelée \textbf{condition de diminution suffisante} ou encore \textbf{règle d'Armijo}, est un critère essentiel dans les méthodes d'optimisation numérique \cite{armijo1966,wolfe1969,wolfe1971}. Elle permet de s'assurer que la réduction de la fonction objectif est proportionnelle à la longueur du pas, afin de garantir la descente, d'éviter les pas trop grands et d'assurer la stabilité de l'algorithme.
+	
+	\subsection{Données de l'exercice}
+	
+	On considère la fonction
+	\begin{equation}
+	f_0(x)=\frac{1}{2}x_1^2+\frac{9}{2}x_2^2.
+	\end{equation}
+	
+	Le gradient de la fonction est donné par
+	\begin{equation}
+	\nabla f_0(x)=
+	\begin{pmatrix}
+	x_1\\
+	9x_2
+	\end{pmatrix}.
+	\end{equation}
+	
+	Au point
+	\[
+	x_0=(10,1)^T,
+	\]
+	nous avons
+	\begin{align}
+	f_0(x_0) &= \frac{1}{2}(10)^2+\frac{9}{2}(1)^2 = 50+4.5 = 54.5,\\
+	\nabla f_0(x_0) &=
+	\begin{pmatrix}
+	10\\
+	9
+	\end{pmatrix}.
+	\end{align}
+	
+	On considère les deux directions suivantes :
+	\[
+	D_1=
+	\begin{pmatrix}
+	-10\\
+	-9
+	\end{pmatrix},
+	\qquad
+	D_2=
+	\begin{pmatrix}
+	-2\\
+	1
+	\end{pmatrix}.
+	\]
+	
+	Après normalisation, on obtient :
+	\begin{align}
+	\|D_1\| &= \sqrt{(-10)^2+(-9)^2}=\sqrt{181},\\
+	d_1 &= \frac{1}{\sqrt{181}}
+	\begin{pmatrix}
+	-10\\
+	-9
+	\end{pmatrix},
+	\end{align}
+	et
+	\begin{align}
+	\|D_2\| &= \sqrt{(-2)^2+1^2}=\sqrt{5},\\
+	d_2 &= \frac{1}{\sqrt{5}}
+	\begin{pmatrix}
+	-2\\
+	1
+	\end{pmatrix}.
+	\end{align}
+	
+	Les produits scalaires avec le gradient valent :
+	\begin{align}
+	\nabla f_0(x_0)^T d_1
+	&=
+	(10,9)\cdot \frac{1}{\sqrt{181}}
+	\begin{pmatrix}
+	-10\\
+	-9
+	\end{pmatrix}
+	=
+	\frac{-100-81}{\sqrt{181}}
+	=
+	-\sqrt{181}
+	\approx -13.4536,
+	\\
+	\nabla f_0(x_0)^T d_2
+	&=
+	(10,9)\cdot \frac{1}{\sqrt{5}}
+	\begin{pmatrix}
+	-2\\
+	1
+	\end{pmatrix}
+	=
+	\frac{-20+9}{\sqrt{5}}
+	=
+	-\frac{11}{\sqrt{5}}
+	\approx -4.9193.
+	\end{align}
+	
+	Comme ces deux quantités sont strictement négatives, $d_1$ et $d_2$ sont bien des directions de descente.
+	
+	\subsection{Première condition de Wolfe}
+	
+	La première condition de Wolfe s'écrit
+	\begin{equation}
+	f(x_k+\alpha_k d_k)\leq f(x_k)+\beta_1\alpha_k \nabla f(x_k)^T d_k,
+	\end{equation}
+	avec
+	\[
+	0<\beta_1<1.
+	\]
+	
+	Elle impose que la décroissance réelle de la fonction soit suffisante par rapport à la décroissance prédite par l'approximation linéaire.
+	
+	\subsection{Étude pour $\beta_1=0.5$}
+	
+	\subsubsection{Direction $d_1$}
+	
+	On considère
+	\[
+	\phi_1(\alpha)=f_0(x_0+\alpha d_1).
+	\]
+	
+	Comme
+	\[
+	x_0+\alpha d_1=
+	\begin{pmatrix}
+	10-\dfrac{10\alpha}{\sqrt{181}}\\[0.2cm]
+	1-\dfrac{9\alpha}{\sqrt{181}}
+	\end{pmatrix},
+	\]
+	on obtient
+	\begin{align}
+	\phi_1(\alpha)
+	&=
+	\frac{1}{2}\left(10-\frac{10\alpha}{\sqrt{181}}\right)^2
+	+
+	\frac{9}{2}\left(1-\frac{9\alpha}{\sqrt{181}}\right)^2\\
+	&=
+	54.5-\sqrt{181}\,\alpha+\frac{829}{362}\alpha^2.
+	\end{align}
+	
+	La droite tangente en $\alpha=0$ est
+	\begin{equation}
+	T_1(\alpha)=f_0(x_0)+\alpha \nabla f_0(x_0)^T d_1
+	=54.5-\sqrt{181}\,\alpha.
+	\end{equation}
+	
+	La droite correspondant à la condition d'Armijo pour $\beta_1=0.5$ est
+	\begin{equation}
+	A_1^{(0.5)}(\alpha)=f_0(x_0)+0.5\,\alpha \nabla f_0(x_0)^T d_1
+	=54.5-0.5\sqrt{181}\,\alpha.
+	\end{equation}
+	
+	\subsubsection{Direction $d_2$}
+	
+	On a
+	\[
+	x_0+\alpha d_2=
+	\begin{pmatrix}
+	10-\dfrac{2\alpha}{\sqrt{5}}\\[0.2cm]
+	1+\dfrac{\alpha}{\sqrt{5}}
+	\end{pmatrix},
+	\]
+	d'où
+	\begin{align}
+	\phi_2(\alpha)
+	&=
+	\frac{1}{2}\left(10-\frac{2\alpha}{\sqrt{5}}\right)^2
+	+
+	\frac{9}{2}\left(1+\frac{\alpha}{\sqrt{5}}\right)^2\\
+	&=
+	54.5-\frac{11}{\sqrt{5}}\alpha+1.3\alpha^2.
+	\end{align}
+	
+	La droite tangente vaut
+	\begin{equation}
+	T_2(\alpha)=54.5-\frac{11}{\sqrt{5}}\alpha.
+	\end{equation}
+	
+	La droite d'Armijo pour $\beta_1=0.5$ est
+	\begin{equation}
+	A_2^{(0.5)}(\alpha)=54.5-\frac{11}{2\sqrt{5}}\alpha.
+	\end{equation}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{cas_beta_05exo13.png}
+		\caption{Première condition de Wolfe pour $\beta_1=0.5$.}
+		\label{fig:exo13-beta05}
+	\end{figure}
+	
+	\subsection{Étude pour $\beta_1=0.1$}
+	
+	\subsubsection{Direction $d_1$}
+	
+	La courbe reste
+	\begin{equation}
+	\phi_1(\alpha)=f_0(x_0+\alpha d_1)=54.5-\sqrt{181}\,\alpha+\frac{829}{362}\alpha^2.
+	\end{equation}
+	
+	La droite d'approximation linéaire est
+	\begin{equation}
+	\ell_1(\alpha)=f_0(x_0)+\alpha \nabla f_0(x_0)^T d_1=54.5-\sqrt{181}\,\alpha.
+	\end{equation}
+	
+	La droite de Wolfe devient
+	\begin{equation}
+	w_1(\alpha)=f_0(x_0)+0.1\,\alpha \nabla f_0(x_0)^T d_1=54.5-0.1\sqrt{181}\,\alpha.
+	\end{equation}
+	
+	\subsubsection{Direction $d_2$}
+	
+	La courbe reste
+	\begin{equation}
+	\phi_2(\alpha)=f_0(x_0+\alpha d_2)=54.5-\frac{11}{\sqrt{5}}\alpha+1.3\alpha^2.
+	\end{equation}
+	
+	La droite d'approximation linéaire est
+	\begin{equation}
+	\ell_2(\alpha)=f_0(x_0)+\alpha \nabla f_0(x_0)^T d_2=54.5-\frac{11}{\sqrt{5}}\alpha.
+	\end{equation}
+	
+	La droite de Wolfe devient
+	\begin{equation}
+	w_2(\alpha)=f_0(x_0)+0.1\,\alpha \nabla f_0(x_0)^T d_2=54.5-0.1\frac{11}{\sqrt{5}}\alpha
+	=54.5-\frac{1.1}{\sqrt{5}}\alpha.
+	\end{equation}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{cas_beta_01exo13.png}
+		\caption{Première condition de Wolfe pour $\beta_1=0.1$.}
+		\label{fig:exo13-beta01}
+	\end{figure}
+	
+	\subsection{Interprétation des résultats}
+	
+	Les figures ci-dessus permettent de comprendre le rôle de la première condition de Wolfe :
+	\[
+	f(x_0+\alpha d)\leq f(x_0)+\beta_1 \alpha \nabla f_0(x_0)^T d.
+	\]
+	
+	La droite de Wolfe sert de ligne de comparaison :
+	\begin{itemize}
+		\item Si la courbe réelle de la fonction reste en dessous de cette droite, alors le pas $\alpha$ est acceptable ;
+		\item Si elle passe au-dessus, cela signifie que la diminution n'est pas suffisante.
+	\end{itemize}
+	
+	\paragraph{$\bullet$}Lorsque $\beta_1=0.5$, la droite de Wolfe est fortement inclinée vers le bas. Les pas acceptés diminuent donc fortement la fonction et l'ensemble des pas admissibles est plus réduit.
+	
+	\paragraph{$\bullet$}Lorsque $\beta_1=0.1$, la droite de Wolfe est plus plate. Il devient alors plus facile pour la courbe réelle de rester en dessous et davantage de valeurs de $\alpha$ sont acceptées.
+	
+	\paragraph{}Ainsi, le paramètre $\beta_1$ contrôle le niveau d'exigence de la descente :
+	\begin{itemize}
+		\item Une petite valeur de $\beta_1$ rend la condition plus facile à satisfaire ;
+		\item Une valeur plus grande de $\beta_1$ rend la condition plus stricte.
+	\end{itemize}
+	
+	\paragraph{Remarque :} Cependant, la première condition de Wolfe présente une limite importante : elle ne cherche pas le meilleur pas possible. Elle vérifie seulement si la diminution obtenue est suffisante.
+	
+	Par conséquent, un pas peut encore être accepté même après avoir dépassé le minimum de la courbe, tant que la fonction reste en dessous de la droite d'Armijo. Ainsi, cette condition n'empêche pas toujours d'accepter des pas situés après le minimum comme le montre bien le cas avec $\beta_1=0.1$ ; elle rejette seulement les pas devenus vraiment trop grands, c'est-à-dire ceux pour lesquels la diminution n'est plus suffisante.
+	
+	On peut donc conclure que la première condition de Wolfe garantit une décroissance acceptable de la fonction, mais elle ne garantit pas que le pas choisi soit optimal.
+	
+	\section{Exercice 14 : Deuxième condition de Wolfe (Progrès suffisant)}
+	
+	La deuxième condition de Wolfe \cite{wolfe1969,wolfe1971} s'écrit mathématiquement :
+	\begin{equation}
+	\nabla f(x_k + \alpha_k d_k)^T d_k \ge \beta_2 \nabla f(x_k)^T d_k
+	\end{equation}
+	où $0 < \beta_1 < \beta_2 < 1$. Elle peut encore s'écrire :
+	
+	\begin{equation}
+	\frac{\nabla f(x_k + \alpha_k d_k)^T d_k}{\nabla f(x_k)^T d_k} \le \beta_2
+	\end{equation}
+	
+	Où :
+	\begin{itemize}
+		\item $d_k$ est la direction de descente au point $x_k$.
+		\item $\alpha_k$ est la longueur du pas.
+		\item $\beta_2 \in [0, 1]$ est le paramètre de courbure.
+	\end{itemize}
+	
+	Elle est encore appelée \textbf{condition de courbure}. Elle empêche l'algorithme de choisir des pas trop petits. Elle garantit que la pente au nouveau point est significativement plus grande (moins négative) que la pente initiale, forçant ainsi un déplacement vers le minimum.
+	
+	\subsection{Tracée de la courbe du rapport des pentes et justification}
+	
+	\subsubsection{Tracée de la courbe du rapport des pentes dans les directions de d1 et d2}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{fig01exo14.png}
+		\caption{Représentation de la condition de courbure}
+		\label{fig:exo14-courbure}
+	\end{figure}
+	
+	\subsubsection{Justification numérique de la linéarité (direction $h$) du rapport des pentes}
+	
+	Soit la fonction $f_0(x) = \frac{1}{2}x_1^2 + \frac{9}{2}x_2^2$. Son gradient est donné par :
+	\begin{equation}
+	\nabla f_0(x) = \begin{pmatrix} x_1 \\ 9x_2 \end{pmatrix}
+	\end{equation}
+	
+	Au point initial $x_0 = (10, 1)$, le gradient est $\nabla f_0(x_0) = (10, 9)^T$. Pour une direction de recherche $h = (h_1, h_2)^T$, on définit le rapport des pentes $R(\alpha)$ par :
+	\begin{equation}
+	R(\alpha) = \frac{\nabla f_0(x_0 + \alpha h)^T h}{\nabla f_0(x_0)^T h}
+	\end{equation}
+	
+	Le développement numérique donne :
+	\begin{itemize}
+		\item \textbf{Dénominateur :} $\nabla f_0(x_0)^T h = 10h_1 + 9h_2$
+		\item \textbf{Numérateur :} $\nabla f_0(x_0 + \alpha h)^T h = (10 + \alpha h_1)h_1 + (9 + 9\alpha h_2)h_2 = (10h_1 + 9h_2) + \alpha(h_1^2 + 9h_2^2)$
+	\end{itemize}
+	
+	En substituant ces expressions dans $R(\alpha)$ :
+	\begin{equation}
+	R(\alpha) = 1 + \alpha \left( \frac{h_1^2 + 9h_2^2}{10h_1 + 9h_2} \right)
+	\end{equation}
+	
+	Cette équation étant de type affine ($R(\alpha) = m\alpha + 1$), elle confirme que le graphe du rapport des pentes est une \textbf{droite} dont l'ordonnée à l'origine est égale à 1.
+	
+	\subsection{Interprétation de la condition de courbure (Wolfe 2) en fonction des valeurs de $\beta_2$}
+	
+	Graphiquement, cela revient à chercher les valeurs de $\alpha$ pour lesquelles la droite $R(\alpha)$ passe sous l'horizontale d'ordonnée $\beta_2$.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{fig02exo14.png}
+		\caption{Synthèse deuxieme condition de Wolfe : choix du meilleur pas}
+		\label{fig:exo14-synthese}
+	\end{figure}
+	
+	D'après la seconde condition de Wolfe (1), un pas $\alpha$ est acceptable si le rapport $R(\alpha)$ satisfait :
+	\begin{equation}
+	R(\alpha) = \frac{\nabla f_0(x_0 + \alpha h)^T h}{\nabla f_0(x_0)^T h} \le \beta_2
+	\end{equation}
+	Puisque la direction $h$ est une direction de descente, le dénominateur $\nabla f_0(x_0)^T d$ est strictement négatif. L'interprétation de ce seuil $\beta_2$ est la suivante :
+	
+	Les figures ci-dessus permettent de comprendre le rôle de la deuxième condition de Wolfe :
+	\[
+	\nabla f(x_0+\alpha h)^T h \geq \beta_2 \nabla f(x_0)^T h.
+	\]
+	
+	Comme la direction $h$ est une direction de descente, on a
+	\[
+	\nabla f(x_0)^T h <0.
+	\]
+	On peut donc réécrire cette condition sous la forme
+	\[
+	R(\alpha)=\frac{\nabla f_0(x_0+\alpha h)^T h}{\nabla f_0(x_0)^T h}\leq \beta_2.
+	\]
+	
+	La droite horizontale $y=\beta_2$ sert alors de ligne de comparaison :
+	\begin{itemize}
+		\item Si la courbe du rapport des pentes $R(\alpha)$ reste en dessous de cette droite, alors le pas $\alpha$ est acceptable ;
+		\item Si elle reste au-dessus, cela signifie que la pente n'a pas encore suffisamment changé et que le pas est trop petit.
+	\end{itemize}
+	
+	\paragraph{$\bullet$}Lorsque $\beta_2=0.9$, le seuil est très haut. La condition est donc très souple : il suffit que la pente se soit un peu redressée pour que le pas soit accepté. Ainsi, même des pas très courts peuvent être admissibles.
+	
+	\paragraph{$\bullet$}Lorsque $\beta_2=0.1$, le seuil est beaucoup plus bas. La condition devient alors plus stricte : il faut que la pente ait fortement changé avant d'accepter le pas. Cela oblige l'algorithme à rejeter les petits pas.
+	
+	\paragraph{$\bullet$}Lorsque $\beta_2=0.5$, on obtient un cas intermédiaire. La condition n'est ni trop sévère ni trop permissive. Elle constitue donc un compromis raisonnable entre stabilité et rapidité de progression.
+	
+	\paragraph{}Ainsi, le paramètre $\beta_2$ contrôle le niveau d'exigence sur l'évolution de la pente :
+	\begin{itemize}
+		\item Une petite valeur de $\beta_2$ rend la condition plus stricte ;
+		\item Une valeur plus grande de $\beta_2$ rend la condition plus facile à satisfaire.
+	\end{itemize}
+	
+	\section{Exercice 15 : Programmation de la recherche linéaire de Wolfe}
+	
+	\subsection{Principe général de la recherche linéaire de Wolfe}
+	
+La recherche linéaire de Wolfe \cite{wolfe1969,wolfe1971,nocedal2006} consiste à choisir un pas $\alpha$ qui satisfait simultanément deux conditions :
+	\begin{itemize}
+		\item La \textbf{première condition de Wolfe}, qui impose une diminution suffisante de la fonction ;
+		\item La \textbf{deuxième condition de Wolfe}, qui impose que la pente ait suffisamment évolué.
+	\end{itemize}
+	
+	Cela permet d'éviter deux comportements extrêmes :
+	\begin{itemize}
+		\item[$\bullet$] Choisir un pas trop grand, qui dégrade la décroissance de la fonction ;
+		\item[$\bullet$] Choisir un pas trop petit, qui ferait avancer l'algorithme trop lentement.
+	\end{itemize}
+	
+	\subsection{Programmation de la fonction \texttt{wolfe.m}}
+	
+	On programme, dans un fichier \texttt{wolfe.m}, une fonction Matlab de la forme
+	\begin{verbatim}
+	function [xnv,nbsim] = wolfe(sim,xk,alpha,dk,beta1,beta2)
+	\end{verbatim}
+	
+	Dans cette écriture :
+	\begin{itemize}
+		\item \texttt{sim} est le nom du simulateur ;
+		\item \texttt{xk} est l'itéré courant ;
+		\item \texttt{alpha} est la valeur initiale du pas ;
+		\item \texttt{dk} est la direction de descente courante ;
+		\item \texttt{beta1} et \texttt{beta2} sont les paramètres des conditions de Wolfe ;
+		\item \texttt{xnv} est le nouveau point $x+\alpha d$ obtenu avec le pas retenu ;
+		\item \texttt{nbsim} est le nombre d'appels au simulateur effectués pendant la recherche.
+	\end{itemize}
+	
+	Le principe de l'algorithme est le suivant :
+	\begin{itemize}
+		\item si le pas testé est trop grand, on le réduit ;
+		\item s'il est trop petit, on l'augmente ;
+		\item dès que les deux conditions de Wolfe sont satisfaites, on l'accepte.
+	\end{itemize}
+	
+	Le code Matlab correspondant est :
+	
+	\begin{verbatim}
+	function [xnv,nbsim] = wolfe(sim,xk,alpha,dk,beta1,beta2)
+	nbsim = 0;
+	amax = 100;
+	amin = 0;
+	[fk,gk] = feval(sim,xk);
+	nbsim = nbsim + 1;
+	gtd_initial = gk' * dk;
+	
+	while (amax - amin) > 1e-10
+	xtest = xk + alpha*dk;
+	[ftest,gtest] = feval(sim,xtest);
+	nbsim = nbsim + 1;
+	
+	% test de la premiere condition de Wolfe
+	if ftest > fk + beta1*alpha*gtd_initial
+	amax = alpha;
+	alpha = (amin + amax)/2;
+	else
+	% test de la deuxieme condition de Wolfe
+	gtd_test = gtest' * dk;
+	if gtd_test < beta2*gtd_initial
+	amin = alpha;
+	if amax == 100
+	alpha = 2*alpha;
+	else
+	alpha = (amin + amax)/2;
+	end
+	else
+	break;
+	end
+	end
+	end
+	
+	xnv = xk + alpha*dk;
+	end
+	\end{verbatim}
+	
+	\subsection{Intégration de Wolfe dans l'algorithme de descente : fichier \texttt{gradrl.m}}
+	
+	\subsubsection{Script Matlab \texttt{gradrl.m}}
+	
+	\begin{verbatim}
+	function [x_k, k, X, nbsim_total] = gradrl(x_0, epsrel)
+	
+	x_k = x_0;
+	k = 0;
+	X = x_k;
+	
+	beta1 = 0.1;
+	beta2 = 0.9;
+	f0_sim = 'simf0';
+	
+	[~, g] = simf0(x_k);
+	g0 = norm(g);
+	nbsim_total = 1;
+	
+	while norm(g) > epsrel * g0
+	dk = -g;
+	[xnv, nbsim_wolfe] = wolfe(f0_sim, x_k, 1, dk, beta1, beta2);
+	x_k = xnv;
+	nbsim_total = nbsim_total + nbsim_wolfe;
+	
+	[~, g] = simf0(x_k);
+	nbsim_total = nbsim_total + 1;
+	
+	X = [X x_k];
+	k = k + 1;
+	end
+	
+	end
+	\end{verbatim}
+	
+	\subsection{Résultats numériques sur la fonction $f_0$}
+	
+	\subsubsection{Approximation du minimum}
+	
+	On obtient numériquement un point très proche de l'origine :
+	\begin{verbatim}
+	
+	>> [xk, k, X, nbsim_total] = gradrl([9;1], 1e-8);
+	>> disp(xk)
+	1.0e-07 *
+	0.5596
+	-0.0247
+	\end{verbatim}
+	
+	Le résultat fourni est de l'ordre de
+	\begin{equation}
+	x_k \approx
+	\begin{pmatrix}
+	0.5596\times 10^{-7}\\
+	-0.0247\times 10^{-7}
+	\end{pmatrix},
+	\end{equation}
+	ce qui est bien cohérent avec le minimum théorique $(0,0)^T$.
+	
+	\subsubsection{Gain en nombre d'itérations}
+	
+	Le nombre d'itérations affiché est :
+	\begin{verbatim}
+	>> [xk, k, X, nbsim_total] = gradrl([9;1], 1e-8);
+	>> disp(k)
+	47
+	\end{verbatim}
+	
+	La méthode avec recherche linéaire de Wolfe converge donc en \textbf{47 itérations}, contre \textbf{83 itérations} pour l'algorithme pfd.m a l'exercice 12 . Il y a donc un gain clair en nombre d'itérations.
+	
+	\subsection{Étude théorique de la fonction $f_1$}
+	
+	On considère maintenant la fonction
+	\[
+	f_1(x)=\frac12 x_1^2 + x_1\cos(x_2).
+	\]
+	
+	\subsubsection{Calcul du gradient}
+	
+	Le gradient de $f_1$ est donné par
+	\[
+	\nabla f_1(x)=
+	\begin{pmatrix}
+	\dfrac{\partial f_1}{\partial x_1}\\[0.2cm]
+	\dfrac{\partial f_1}{\partial x_2}
+	\end{pmatrix}.
+	\]
+	
+	En dérivant par rapport à $x_1$, on obtient
+	\[
+	\frac{\partial f_1}{\partial x_1}=x_1+\cos(x_2).
+	\]
+	
+	En dérivant par rapport à $x_2$, on obtient
+	\[
+	\frac{\partial f_1}{\partial x_2}=-x_1\sin(x_2).
+	\]
+	
+	Ainsi,
+	\begin{equation}
+	\nabla f_1(x)=
+	\begin{pmatrix}
+	x_1+\cos(x_2)\\
+	-x_1\sin(x_2)
+	\end{pmatrix}.
+	\end{equation}
+	
+	\subsubsection{Résolution à la main}
+	
+	Pour déterminer les points critiques de $f_1$, on résout
+	\[
+	\nabla f_1(x)=0,
+	\]
+	c'est-à-dire le système
+	\[
+	\left\{
+	\begin{aligned}
+	x_1+\cos(x_2)&=0,\\
+	-x_1\sin(x_2)&=0.
+	\end{aligned}
+	\right.
+	\]
+	
+	La deuxième équation donne
+	\[
+	x_1\sin(x_2)=0.
+	\]
+	
+	Il y a donc deux possibilités :
+	
+	\paragraph{Premier cas : $x_1=0$}
+	
+	Dans ce cas, la première équation devient
+	\[
+	\cos(x_2)=0,
+	\]
+	d'où
+	\[
+	x_2=\frac{\pi}{2}+k\pi,\qquad k\in\mathbb{Z}.
+	\]
+	
+	On obtient donc des points critiques de la forme
+	\[
+	\left(0,\frac{\pi}{2}+k\pi\right).
+	\]
+	
+	\paragraph{Deuxième cas : $\sin(x_2)=0$}
+	
+	On a alors
+	\[
+	x_2=k\pi,\qquad k\in\mathbb{Z}.
+	\]
+	
+	La première équation devient
+	\[
+	x_1+\cos(k\pi)=0.
+	\]
+	Or
+	\[
+	\cos(k\pi)=(-1)^k,
+	\]
+	donc
+	\[
+	x_1=-(-1)^k.
+	\]
+	
+	On obtient ainsi les points critiques
+	\[
+	(x_1,x_2)=(-1,(2m)\pi)\quad \text{ou} \quad (1,(2m+1)\pi),
+	\qquad m\in\mathbb{Z}.
+	\]
+	
+	\subsubsection{Valeur de la fonction aux points critiques}
+	
+	Pour les points
+	\[
+	(-1,2m\pi),
+	\]
+	on a
+	\[
+	f_1(-1,2m\pi)=\frac12(-1)^2+(-1)\cos(2m\pi)=\frac12-1=-\frac12.
+	\]
+	
+	Pour les points
+	\[
+	(1,(2m+1)\pi),
+	\]
+	on a
+	\[
+	f_1(1,(2m+1)\pi)=\frac12(1)^2+1\cdot \cos((2m+1)\pi)=\frac12-1=-\frac12.
+	\]
+	
+	Ainsi, ces deux familles de points donnent la même valeur
+	\[
+	f_1=-\frac12,
+	\]
+	qui correspond aux minima de la fonction.
+	
+	\bigskip
+	
+	On retiendra donc que la fonction $f_1$ possède plusieurs minima, par exemple
+	\[
+	(-1,0),\qquad (1,\pi),\qquad (-1,2\pi),\qquad (1,3\pi), \dots
+	\]
+	
+	\subsection{Résultats numériques sur la fonction $f_1$}
+	
+	On applique maintenant le même procédé à la fonction
+	\[
+	f_1(x)=\frac12 x_1^2 + x_1\cos(x_2).
+	\]
+	
+	\subsubsection{Approximation du minimum}
+	
+	En lançant l'algorithme avec le point initial $x_0=(9,1)^T$, on obtient numériquement :
+	\begin{verbatim}
+	>> [xk, k, X, nbsim_total] = gradrl_f1([9;1], 1e-8);
+	>> disp(xk)
+	1.0000
+	9.4248
+	\end{verbatim}
+	
+	Le point calculé est donc très proche de
+	\[
+	x_k \approx
+	\begin{pmatrix}
+	1\\
+	9.4248
+	\end{pmatrix}
+	=
+	\begin{pmatrix}
+	1\\
+	3\pi
+	\end{pmatrix}.
+	\]
+	
+	Ce résultat est cohérent avec l'étude théorique précédente, puisque
+	\[
+	(1,3\pi)
+	\]
+	est bien l'un des minima de la fonction $f_1$.
+	
+	\subsubsection{Nombre d'itérations}
+	
+	Le nombre d'itérations obtenu est :
+	\begin{verbatim}
+	>> disp(k)
+	8
+	\end{verbatim}
+	
+	La méthode converge en \textbf{8 itérations}.
+	
+	\subsubsection{Nombre total d'appels au simulateur}
+	
+	Le nombre total d'appels au simulateur est :
+	\begin{verbatim}
+	>> disp(nbsim_total)
+	25
+	\end{verbatim}
+	
+	On observe donc que la recherche linéaire de Wolfe reste plus coûteuse qu'un simple calcul explicite du pas, cependant elle conduit à une convergence rapide.
+	
+	\subsubsection{Interprétation des résultats}
+	
+	Cet essai montre que la méthode avec recherche linéaire de Wolfe s'adapte aussi à une fonction non quadratique comme $f_1$.
+	
+	L'algorithme converge vers l'un des minima de la fonction avec un nombre d'itérations réduit. Cela confirme l'intérêt de la recherche linéaire : même lorsque l'on ne dispose plus d'une formule explicite du pas optimal, on peut tout de même choisir un pas efficace grâce aux conditions de Wolfe.
+	
+	\section{Exercice 16 : Implémentation de la méthode de Newton locale}
+	
+	\subsection{Rappel sur la méthode de Newton locale}
+	
+La méthode de Newton locale est une méthode itérative utilisée pour approcher un minimum d’une fonction différentiable \cite{nocedal2006,dennis1996,kantorovich1948}. À chaque itération, la direction de Newton \(d_k\) est définie par la relation
+	\[
+	H(x_k)d_k=-\nabla f(x_k),
+	\]
+	où \(H(x_k)\) désigne la matrice hessienne de \(f\) au point \(x_k\).
+	
+	Lorsque la hessienne est inversible, cette relation s’écrit aussi
+	\[
+	d_k=-H(x_k)^{-1}\nabla f(x_k).
+	\]
+	
+	La mise à jour de l’itéré est alors donnée par
+	\[
+	x_{k+1}=x_k+\alpha_k d_k,
+	\]
+	où \(\alpha_k\) est un pas choisi ici à l’aide d’une stratégie adaptative de type Wolfe.
+	
+	L’intérêt principal de la méthode de Newton est qu’elle utilise à la fois le gradient et la hessienne. Elle prend donc en compte non seulement la pente de la fonction, mais aussi sa courbure locale.Dans des conditions favorables, cela permet d’obtenir une convergence quadratique, donc beaucoup plus rapide que celle de la descente de gradient classique \cite{nocedal2006,dennis1996}.
+	
+	\subsection{Données du problème}
+	
+	Dans cet exercice, on applique la méthode de Newton locale à deux fonctions.
+	
+	On commence d’abord par la fonction quadratique
+	\[
+	f_0(x)=\frac12 x_1^2+\frac92 x_2^2,
+	\]
+	puis on considère ensuite la fonction non quadratique
+	\[
+	f_1(x)=\frac12 x_1^2+x_1\cos(x_2).
+	\]
+	
+	\subsection{Modification du simulateur}
+	
+	La méthode de Newton nécessite la connaissance de la hessienne. On construit donc une nouvelle version du simulateur associé à \(f_0\), notée \texttt{simf0\_2.m}, qui retourne la valeur de la fonction, son gradient et sa hessienne.
+	
+	\subsubsection{Calcul du gradient et de la hessienne de \(f_0\)}
+	
+	Pour
+	\[
+	f_0(x)=\frac12 x_1^2+\frac92 x_2^2,
+	\]
+	on a
+	\[
+	\nabla f_0(x)=
+	\begin{pmatrix}
+	x_1\\
+	9x_2
+	\end{pmatrix}
+	\]
+	et
+	\[
+	H_0(x)=
+	\begin{pmatrix}
+	1&0\\
+	0&9
+	\end{pmatrix}.
+	\]
+	
+	On remarque que la hessienne est constante et symétrique définie positive.
+	
+	\subsubsection{Fonction \texttt{simf0\_2.m}}
+	
+	\begin{verbatim}
+	function [f,g,h] = simf0_2(x)
+	% x est un vecteur colonne [x1; x2]
+	
+	f = 0.5*x(1)^2 + 4.5*x(2)^2;
+	g = [x(1); 9*x(2)];
+	h = [1 0; 0 9];
+	
+	end
+	\end{verbatim}
+	
+	\subsection{Implémentation de la méthode de Newton locale}
+	
+	On programme ensuite l’algorithme dans un fichier \texttt{newton\_loc.m}. À chaque itération :
+	\begin{itemize}
+		\item on calcule la direction de Newton en résolvant
+		\[
+		H(x_k)d_k=-\nabla f(x_k),
+		\]
+		\item puis on choisit un pas \(\alpha_k\) à l’aide d’une stratégie adaptative ;
+		\item enfin on met à jour l’itéré.
+	\end{itemize}
+	
+	\subsubsection{Principe de l’algorithme}
+	
+	Lorsque la hessienne est définie positive, la direction de Newton est donnée par
+	\[
+	d_k=-H(x_k)^{-1}\nabla f(x_k).
+	\]
+	
+	Dans le cas contraire, la direction de Newton peut ne plus être une direction de descente. Il est donc prudent, dans une implémentation numérique, de prévoir une stratégie de secours, par exemple en revenant à la direction du gradient opposé.
+	
+	\subsubsection{Fichier \texttt{newton\_loc.m}}
+	
+	\begin{verbatim}
+	function [xk, fk, iter, X] = newton_loc(sim, x0, tol, maxit)
+	
+	% xk represente le point courant, initialise avec le point de depart
+	xk = x0;
+	
+	% X permettra de conserver la trace de tous les iteres successifs
+	X = xk;
+	
+	% boucle principale de l'algorithme de Newton
+	for k = 1:maxit
+	
+	% calcul de la fonction, du gradient et de la hessienne au point courant
+	[f, g, h] = feval(sim, xk);
+	
+	% condition d'arret : on s'interrompt si le gradient devient tres petit
+	if norm(g) < tol
+	break;
+	end
+	
+	% determination de la direction de descente
+	% si la hessienne est definie positive, on utilise la direction de Newton
+	if all(eig(h) > 0)
+	d = -h \ g;
+	else
+	% sinon, on se rabat sur une direction plus simple : l'oppose du gradient
+	d = -g;
+	end
+	
+	% selection du pas avec un backtracking base sur la condition d'Armijo
+	alpha = 1;      % on essaie d'abord un pas complet
+	c1 = 1e-4;      % constante de la condition d'Armijo
+	rho = 0.5;      % coefficient de reduction du pas
+	
+	while true
+	% nouveau point teste avec le pas actuel
+	xnew = xk + alpha*d;
+	
+	% evaluation de la fonction en ce nouveau point
+	[fnew, ~, ~] = feval(sim, xnew);
+	
+	% verification de la condition d'Armijo
+	% si elle est respectee, le pas est valide
+	if fnew <= f + c1*alpha*(g'*d)
+	break;
+	end
+	
+	% sinon, on diminue le pas et on recommence
+	alpha = rho*alpha;
+	end
+	
+	% mise a jour du point courant
+	xk = xnew;
+	
+	% ajout du nouvel itere a l'historique
+	X = [X xk];
+	end
+	
+	% valeur finale de la fonction
+	fk = f;
+	
+	% nombre total d'iterations effectuees
+	iter = k;
+	
+	end
+	\end{verbatim}
+	
+	\subsection{Tests numériques sur la fonction \(f_0\)}
+	
+	On teste d’abord la méthode de Newton sur la fonction quadratique \(f_0\).
+	
+	\begin{verbatim}
+	>> 		x0 = [9; 1];
+	[xk, fk, iter, X] = newton_loc('simf0_2', x0, 1e-8, 50);
+	
+	disp('Point final :')
+	disp(xk)
+	
+	disp('Nombre d''iterations :')
+	disp(iter)
+	Point final :
+	0
+	0
+	
+	Nombre d'iterations :
+	2
+	\end{verbatim}
+	
+	\subsubsection{Interprétation}
+	
+	Dans ce cas, la méthode converge très rapidement vers le minimum
+	\[
+	x^*=(0,0)^T.
+	\]
+	
+	Cela s’explique par le fait que la fonction \(f_0\) est quadratique et que sa hessienne est constante. La méthode de Newton est alors particulièrement adaptée à ce type de fonction, ce qui explique sa grande efficacité.
+	
+	\subsection{Étude théorique de la fonction \(f_1\)}
+	
+	On considère maintenant la fonction
+	\[
+	f_1(x)=\frac12 x_1^2+x_1\cos(x_2).
+	\]
+	
+	\subsubsection{Calcul du gradient}
+	
+	Le gradient de \(f_1\) est
+	\[
+	\nabla f_1(x)=
+	\begin{pmatrix}
+	x_1+\cos(x_2)\\
+	-x_1\sin(x_2)
+	\end{pmatrix}.
+	\]
+	
+	\subsubsection{Calcul de la hessienne}
+	
+	La hessienne de \(f_1\) vaut
+	\[
+	H_1(x)=
+	\begin{pmatrix}
+	1 & -\sin(x_2)\\
+	-\sin(x_2) & -x_1\cos(x_2)
+	\end{pmatrix}.
+	\]
+	
+	\subsubsection{Résolution à la main des points critiques}
+	
+	Les points critiques sont obtenus en résolvant
+	\[
+	\nabla f_1(x)=0,
+	\]
+	c’est-à-dire
+	\[
+	\left\{
+	\begin{aligned}
+	x_1+\cos(x_2)&=0,\\
+	-x_1\sin(x_2)&=0.
+	\end{aligned}
+	\right.
+	\]
+	
+	La deuxième équation donne
+	\[
+	x_1\sin(x_2)=0.
+	\]
+	
+	On distingue alors deux cas :
+	
+	\paragraph{Cas 1 : \(x_1=0\)}
+	La première équation devient
+	\[
+	\cos(x_2)=0,
+	\]
+	donc
+	\[
+	x_2=\frac{\pi}{2}+k\pi,\qquad k\in\mathbb{Z}.
+	\]
+	
+	On obtient ainsi des points critiques de la forme
+	\[
+	\left(0,\frac{\pi}{2}+k\pi\right).
+	\]
+	
+	\paragraph{Cas 2 : \(\sin(x_2)=0\)}
+	On a alors
+	\[
+	x_2=k\pi,\qquad k\in\mathbb{Z},
+	\]
+	et la première équation devient
+	\[
+	x_1+\cos(k\pi)=0.
+	\]
+	Comme
+	\[
+	\cos(k\pi)=(-1)^k,
+	\]
+	on obtient
+	\[
+	x_1=-(-1)^k.
+	\]
+	
+	Donc les autres points critiques sont
+	\[
+	(-1,2m\pi)\quad \text{et} \quad (1,(2m+1)\pi),\qquad m\in\mathbb{Z}.
+	\]
+	
+	\subsubsection{Quels sont les minima ?}
+	
+	On calcule la valeur de \(f_1\) sur ces deux familles :
+	
+	\[
+	f_1(-1,2m\pi)=\frac12(-1)^2+(-1)\cos(2m\pi)=\frac12-1=-\frac12,
+	\]
+	et
+	\[
+	f_1(1,(2m+1)\pi)=\frac12(1)^2+1\cdot\cos((2m+1)\pi)=\frac12-1=-\frac12.
+	\]
+	
+	Ces deux familles correspondent donc aux minima de \(f_1\).
+	
+	On peut retenir par exemple les minima suivants :
+	\[
+	(-1,0),\qquad (1,\pi),\qquad (-1,2\pi),\qquad (1,3\pi),\dots
+	\]
+	
+	\subsubsection{Fonction \texttt{simf1\_2.m}}
+	
+	\begin{verbatim}
+	function [f,g,h] = simf1_2(x)
+	% x est un vecteur colonne [x1; x2]
+	
+	f = 0.5*x(1)^2 + x(1)*cos(x(2));
+	
+	g = [x(1) + cos(x(2));
+	-x(1)*sin(x(2))];
+	
+	h = [1, -sin(x(2));
+	-sin(x(2)), -x(1)*cos(x(2))];
+	
+	end
+	\end{verbatim}
+	
+	\subsection{Tests numériques sur la fonction \(f_1\)}
+	
+	\subsubsection{Résultats des tests de la méthode de Newton}
+	
+	\subsubsection*{Test 1}
+	\begin{center}
+		\begin{tabular}{ccc}
+			\toprule
+			$k$ & $x_1^{(k)}$ & $x_2^{(k)}$ \\
+			\midrule
+			0 & -0.9000 & 0.4000 \\
+			1 & -1.1273 & -0.1296 \\
+			2 & -1.0067 & -0.0132 \\
+			3 & -1.0001 & -0.0001 \\
+			4 & -1.0000 & -0.0000 \\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+	
+	\subsubsection*{Test 2}
+	\begin{center}
+		\begin{tabular}{ccc}
+			\toprule
+			$k$ & $x_1^{(k)}$ & $x_2^{(k)}$ \\
+			\midrule
+			0 & -1.2000 & 0.2000 \\
+			1 & -1.0141 & 0.0287 \\
+			2 & -1.0004 & 0.0004 \\
+			3 & -1.0000 & 0.0000 \\
+			4 & -1.0000 & 0.0000 \\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+	
+	\subsubsection*{Test 3}
+	\begin{center}
+		\begin{tabular}{ccc}
+			\toprule
+			$k$ & $x_1^{(k)}$ & $x_2^{(k)}$ \\
+			\midrule
+			0 & 0.5000 & 2.5000 \\
+			1 & 0.9418 & 3.2067 \\
+			2 & 1.0024 & 3.1373 \\
+			3 & 1.0000 & 3.1416 \\
+			4 & 1.0000 & 3.1416 \\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+	
+	\subsubsection*{Test 4}
+	\begin{center}
+		\begin{tabular}{ccc}
+			\toprule
+			$k$ & $x_1^{(k)}$ & $x_2^{(k)}$ \\
+			\midrule
+			0 & 2.0000 & 1.0000 \\
+			1 & -0.5403 & 2.6829 \\
+			2 & 0.8967 & 2.4437 \\
+			3 & 1.4085 & 3.3418 \\
+			4 & 1.0089 & 3.1964 \\
+			5 & 1.0015 & 3.1419 \\
+			6 & 1.0000 & 3.1416 \\
+			7 & 1.0000 & 3.1416 \\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+	
+	\subsubsection*{Test 5}
+	\begin{center}
+		\begin{tabular}{ccc}
+			\toprule
+			$k$ & $x_1^{(k)}$ & $x_2^{(k)}$ \\
+			\midrule
+			0 & -2.0000 & 3.0000 \\
+			1 & 0.9900 & 2.7178 \\
+			2 & 1.1218 & 3.2290 \\
+			3 & 1.0030 & 3.1506 \\
+			4 & 1.0000 & 3.1416 \\
+			5 & 1.0000 & 3.1416 \\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+	
+	\subsubsection*{Test 6}
+	\begin{center}
+		\begin{tabular}{ccc}
+			\toprule
+			$k$ & $x_1^{(k)}$ & $x_2^{(k)}$ \\
+			\midrule
+			0 & 3.0000 & -1.0000 \\
+			1 & -0.5403 & -3.5244 \\
+			2 & 0.9276 & -3.7262 \\
+			3 & 1.1516 & -3.2355 \\
+			4 & 1.0033 & -3.1534 \\
+			5 & 1.0001 & -3.1416 \\
+			6 & 1.0000 & -3.1416 \\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+	
+	\subsubsection*{Tableau récapitulatif final}
+	
+	\begin{center}
+		\resizebox{\textwidth}{!}{%
+			\begin{tabular}{ccccccc}
+				\toprule
+				$x_{0,1}$ & $x_{0,2}$ & $x_{f,1}$ & $x_{f,2}$ & $f_{\mathrm{final}}$ & Itérations & Convergence \\
+				\midrule
+				-0.9 & 0.4 & -1 & $-7.3573\times 10^{-9}$ & -0.5 & 5 & oui \\
+				-1.2 & 0.2 & -1 & $1.0962\times 10^{-14}$ & -0.5 & 5 & oui \\
+				0.5 & 2.5 & 1 & 3.1416 & -0.5 & 5 & oui \\
+				2 & 1 & 1 & 3.1416 & -0.5 & 8 & oui \\
+				-2 & 3 & 1 & 3.1416 & -0.5 & 6 & oui \\
+				3 & -1 & 1 & -3.1416 & -0.5 & 7 & oui \\
+				\bottomrule
+			\end{tabular}%
+		}
+	\end{center}
+	
+	\subsubsection*{Signification des notations}
+	
+	Dans les tableaux précédents, les différentes notations ont la signification suivante.
+	
+	Pour chaque test, on part d’un point initial
+	\[
+	x_0=(x_{0,1},x_{0,2})^T.
+	\]
+	
+	À l’itération \(k\), la méthode de Newton fournit un point
+	\[
+	x^{(k)}=\bigl(x_1^{(k)},x_2^{(k)}\bigr)^T,
+	\]
+	où :
+	\[
+	x_1^{(k)} \text{ est la première composante de l’itéré } x^{(k)},
+	\]
+	\[
+	x_2^{(k)} \text{ est la deuxième composante de l’itéré } x^{(k)}.
+	\]
+	
+	Dans les tableaux des tests :
+	
+	\begin{center}
+		\begin{tabular}{cl}
+			\toprule
+			Terme & Signification \\
+			\midrule
+			\(k\) & numéro de l’itération \\
+			\(x_1^{(k)}\) & première coordonnée du point calculé à l’itération \(k\) \\
+			\(x_2^{(k)}\) & deuxième coordonnée du point calculé à l’itération \(k\) \\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+	
+	Dans le tableau récapitulatif final :
+	
+	\begin{center}
+		\begin{tabular}{cl}
+			\toprule
+			Terme & Signification \\
+			\midrule
+			\(x_{0,1}\)  & première coordonnée du point de départ \(x_0\) \\
+			\(x_{0,2}\) & deuxième coordonnée du point de départ \(x_0\) \\
+			\(x_{f,1}\) & première coordonnée du point final obtenu \\
+			\(x_{f,2}\) & deuxième coordonnée du point final obtenu \\
+			\(f_{\mathrm{final}}\) & valeur de la fonction au point final, c’est-à-dire \(f(x_f)\) \\
+			Itérations & nombre total d’itérations effectuées par la méthode \\
+			Convergence & indique si la méthode a convergé ou non \\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+	
+	Ici, le point final
+	\[
+	x_f=(x_{f,1},x_{f,2})^T
+	\]
+	correspond à l’approximation numérique du minimum obtenue par la méthode de Newton.
+	
+	La mention \emph{oui} dans la colonne \emph{Convergence} signifie que le critère d’arrêt a été satisfait, c’est-à-dire que la norme du gradient au point final est devenue inférieure à la tolérance fixée.
+	
+	\subsubsection{Interprétation}
+	
+	Les résultats montrent que la méthode de Newton est très efficace lorsque le point de départ est proche d’un minimum. Dans ce cas, elle converge en très peu d’itérations vers la solution.
+	
+	Lorsque le point initial est plus éloigné, la méthode converge encore dans les tests effectués, mais elle peut demander davantage d’itérations. On remarque aussi que le minimum obtenu dépend du point de départ choisi.
+	
+	Cela confirme que la méthode de Newton est une méthode locale : elle est très rapide près d’un minimum, mais son comportement global reste sensible à l’initialisation.
+	
+	\section{Exercice 17 : Comparaison de la méthode de gradient et de la méthode de Newton locale}
+	
+	\subsection{Étude théorique des fonctions}
+	
+	\subsubsection{Fonction \(f_2\)}
+	
+	On considère
+	\[
+	f_2(x)=x_1^4+x_2^4.
+	\]
+	
+	Son gradient est
+	\[
+	\nabla f_2(x)=
+	\begin{pmatrix}
+	4x_1^3\\
+	4x_2^3
+	\end{pmatrix}.
+	\]
+	
+	Sa hessienne est
+	\[
+	H_2(x)=
+	\begin{pmatrix}
+	12x_1^2 & 0\\
+	0 & 12x_2^2
+	\end{pmatrix}.
+	\]
+	
+	On remarque que \(f_2\) est une fonction convexe, de minimum global
+	\[
+	x^*=(0,0)^T,
+	\qquad
+	f_2(x^*)=0.
+	\]
+	
+	\subsubsection{Fonction \(f_3\)}
+	
+	On considère maintenant
+	\[
+	f_3(x)=(1-x_1)^2+100(x_2-x_1^2)^2.
+	\]
+	
+	Son gradient est
+	\[
+	\nabla f_3(x)=
+	\begin{pmatrix}
+	-2(1-x_1)-400x_1(x_2-x_1^2)\\
+	200(x_2-x_1^2)
+	\end{pmatrix}.
+	\]
+	
+	Sa hessienne est
+	\[
+	H_3(x)=
+	\begin{pmatrix}
+	2-400x_2+1200x_1^2 & -400x_1\\
+	-400x_1 & 200
+	\end{pmatrix}.
+	\]
+	
+	La fonction \(f_3\) admet un minimum global en
+	\[
+	x^*=(1,1)^T,
+	\qquad
+	f_3(x^*)=0.
+	\]
+	
+	Cette fonction est plus délicate que \(f_2\), car sa vallée de minimum est étroite. Cela rend souvent la descente de gradient plus lente, tandis que Newton peut devenir très efficace lorsque l’on est suffisamment proche du minimum.
+	
+	\subsection{Simulateurs Matlab}
+	
+	Pour comparer les deux méthodes, on construit des simulateurs renvoyant la fonction, son gradient, et éventuellement sa hessienne.
+	
+	\subsubsection{Fonction \texttt{simf2\_2.m}}
+	
+	\begin{verbatim}
+	function [f,g,h] = simf2_2(x)
+	
+	f = x(1)^4 + x(2)^4;
+	
+	g = [4*x(1)^3;
+	4*x(2)^3];
+	
+	h = [12*x(1)^2, 0;
+	0, 12*x(2)^2];
+	
+	end
+	\end{verbatim}
+	
+	\subsubsection{Fonction \texttt{simf3\_2.m}}
+	
+	\begin{verbatim}
+	function [f,g,h] = simf3_2(x)
+	
+	f = (1-x(1))^2 + 100*(x(2)-x(1)^2)^2;
+	
+	g = [-2*(1-x(1)) - 400*x(1)*(x(2)-x(1)^2);
+	200*(x(2)-x(1)^2)];
+	
+	h = [2 - 400*x(2) + 1200*x(1)^2, -400*x(1);
+	-400*x(1),                   200];
+	
+	end
+	\end{verbatim}
+	
+	\subsection{Principe de la comparaison}
+	
+	Pour chaque fonction, on applique :
+	\begin{itemize}
+		\item la méthode du gradient avec pas adaptatif ;
+		\item la méthode de Newton locale avec pas adaptatif.
+	\end{itemize}
+	
+	On compare ensuite :
+	\begin{itemize}
+		\item la trajectoire des itérés sur la carte de niveaux ;
+		\item l’évolution de \(f(x_k)\) ;
+		\item l’évolution de \(\|\nabla f(x_k)\|\).
+	\end{itemize}
+	
+	\subsection{Tests numériques sur la fonction \(f_2\)}
+	
+	\subsubsection*{Données de lancement et implémentation}
+	
+	\begin{verbatim}
+	x0 = [1.5; -1.5];
+	
+	[xg, kg, Xg, nbsim_g] = gradrl_gen('simf2', x0, 1e-8);
+	[xn, fn, kn, Xn] = newton_loc('simf2_2', x0, 1e-8, 100);
+	\end{verbatim}
+	
+	\subsubsection{Carte de niveaux et trajectoires}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{fig01exo17.png}
+		\caption{Comparaison des trajectoires pour $f_2$}
+		\label{fig:exo17-f2-trajectoires}
+	\end{figure}
+	
+	\subsubsection{Historique de convergence}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{fig02exo17.png}
+		\caption{Evolution de $||\nabla f(x_k)||$ et de $f(x_k)$ pour $f_2$ en fonction des itérations $k$}
+		\label{fig:exo17-f2-convergence}
+	\end{figure}
+	
+	\subsubsection{Interprétation}
+	
+Pour la fonction \(f_2\), les deux méthodes convergent bien vers le minimum \((0,0)^T\). Cependant, la méthode de Newton atteint ce minimum plus rapidement, car elle exploite la courbure locale (grace à la hessienne) de la fonction en plus du gradient \cite{nocedal2006,dennis1996}.
+	
+La méthode du gradient reste plus simple à mettre en œuvre, mais elle avance de manière plus progressive et demande en général davantage d’itérations pour converger \cite{cauchy1847,nocedal2006}.
+	
+	\subsection{Tests numériques sur la fonction \(f_3\)}
+	
+	\subsubsection*{Données de lancement}
+	
+	\begin{verbatim}
+	x0 = [-1.5; -1.5];
+	
+	[xg, kg, Xg, nbsim_g] = gradrl_gen('simf3', x0, 1e-8);
+	[xn, fn, kn, Xn] = newton_loc('simf3_2', x0, 1e-8, 100);
+	\end{verbatim}
+	
+	\subsubsection{Carte de niveaux et trajectoires}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{fig03exo17.png}
+		\caption{Comparaison des trajectoires pour $f_3$}
+		\label{fig:exo17-f3-trajectoires}
+	\end{figure}
+	
+	\subsubsection{Historique de convergence}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{fig04exo17.png}
+		\caption{Evolution de $||\nabla f(x_k)||$ et de $f(x_k)$ pour $f_3$ en fonction des itérations $k$}
+		\label{fig:exo17-f3-convergence}
+	\end{figure}
+	
+	\subsubsection{Interprétation}
+	
+	Pour la fonction \(f_3\), on remarque que la méthode du gradient progresse plus lentement. Les itérés ne vont pas directement vers le minimum \((1,1)^T\), mais avancent de manière irrégulière, avec une trajectoire souvent en zigzag. Cela montre que, pour cette fonction, la simple direction du gradient ne permet pas toujours d’aller rapidement vers la solution.
+	
+	La méthode de Newton, en revanche, devient plus efficace lorsque le point de départ est assez proche du minimum. Elle converge alors plus rapidement, car elle utilise aussi les informations données par la hessienne. En revanche, cette méthode reste plus sensible au point initial : si l’on part trop loin, ou si la hessienne n’est pas favorable, la convergence peut être moins bonne.
+	
+	\subsection{Synthèse}
+	
+	Cette comparaison met en évidence les différences essentielles entre les deux méthodes.
+	
+	La méthode du gradient est plus simple et plus robuste, mais elle peut être lente.
+	
+	La méthode de Newton locale est plus rapide lorsqu’elle fonctionne dans de bonnes conditions, car elle exploite la courbure de la fonction. En revanche, elle dépend davantage de la qualité du point de départ et de la hessienne.
+	
+	On peut donc conclure que la méthode de Newton est souvent plus performante près du minimum, tandis que la méthode du gradient reste plus simple à mettre en œuvre et plus stable globalement.
+	
+	\section{Exercice 18 : Ajustement d'une gaussienne par la méthode de Gauss-Newton}
+	
+	\subsection{Situation du problème}
+	
+	Soit un nuage de points
+	\[
+	(x_1,y_1), (x_2,y_2), \dots, (x_n,y_n),
+	\]
+	On cherche une courbe de type gaussienne qui passe le plus près possible de ces points.
+	
+	La courbe choisie est de la forme suivante :
+	\begin{equation}
+	g(x)=\alpha_1+\alpha_2\exp\big(-\alpha_4(x-\alpha_3)^2\big),
+	\end{equation}
+	où
+	\[
+	a=(\alpha_1,\alpha_2,\alpha_3,\alpha_4)^T \in \mathbb{R}^4
+	\]
+	est le vecteur des paramètres inconnus avec des significations suivantes :
+	
+	\begin{itemize}
+		\item $\alpha_1$ correspond au niveau de base de la courbe ;
+		\item $\alpha_2$ correspond à la hauteur de la bosse ;
+		\item $\alpha_3$ correspond à la position du centre de la gaussienne ;
+		\item $\alpha_4$ contrôle l'étalement de la courbe.
+	\end{itemize}
+	
+	\subsection{Fonction coût à minimiser}
+	
+	L'erreur sur chaque point est donnée par :
+	\[
+	g(x_i)-y_i.
+	\]
+	
+	Comme en méthode des moindres carrés, on additionne ensuite les carrés de ces erreurs.
+	On définit alors la fonction coût
+	\begin{equation}
+	f(\alpha_1,\alpha_2,\alpha_3,\alpha_4)
+	=
+	\frac12\sum_{i=1}^{n}
+	\left(
+	\alpha_1+\alpha_2\exp\big(-\alpha_4(x_i-\alpha_3)^2\big)-y_i
+	\right)^2.
+	\end{equation}
+	
+	Le but de l'exercice est donc de résoudre
+	\[
+	\min_{a\in\mathbb{R}^4} f(a).
+	\]
+	
+	\subsection{Écriture de la fonction sous la forme \texorpdfstring{$f(a)=\frac12\|h(a)\|^2$}{f(a)=1/2||h(a)||²}}
+	
+	Pour appliquer la méthode de Gauss-Newton, on peut écrire le problème sous une forme adaptée.
+	
+	On commence par définir les \textbf{résidus}.
+	Un résidu est l'erreur entre la valeur donnée par la méthode et la donnée expérimentale.
+	
+	Pour chaque point $i$, on pose
+	\begin{equation}
+	h_i(a)=\alpha_1+\alpha_2\exp\big(-\alpha_4(x_i-\alpha_3)^2\big)-y_i.
+	\end{equation}
+	
+	On regroupe ensuite tous ces résidus dans un vecteur
+	\begin{equation}
+	h(a)=
+	\begin{pmatrix}
+	h_1(a)\\
+	h_2(a)\\
+	\vdots\\
+	h_n(a)
+	\end{pmatrix}
+	\in\mathbb{R}^n.
+	\end{equation}
+	
+	Ainsi, la fonction coût devient
+	\begin{equation}
+	f(a)=\frac12\|h(a)\|^2.
+	\end{equation}
+	
+	Ainsi le vecteur $h(a)$ contient toutes les erreurs de la méthode.
+	Donc minimiser $f(a)$ revient à rendre ce vecteur d'erreurs aussi petit que possible ce qui est le but recherché.
+	
+	\paragraph{NB :} attention ici pour avoir une courbe gaussienne le coefficient $\alpha_4$ doit être strictement positif. Il faudrait
+	en toute rigueur faire une optimisation sous contraintes, mais nous nous contenterons de vérifier que cette
+	contrainte est satisfaite.
+	
+	\subsection{Expression explicite de la fonction \texorpdfstring{$h(a)$}{h(a)}}
+	
+	Si
+	\[
+	a=(\alpha_1,\alpha_2,\alpha_3,\alpha_4)^T,
+	\]
+	alors
+	\begin{equation}
+	h(a)=
+	\begin{pmatrix}
+	\alpha_1+\alpha_2 e^{-\alpha_4(x_1-\alpha_3)^2}-y_1\\
+	\alpha_1+\alpha_2 e^{-\alpha_4(x_2-\alpha_3)^2}-y_2\\
+	\vdots\\
+	\alpha_1+\alpha_2 e^{-\alpha_4(x_n-\alpha_3)^2}-y_n
+	\end{pmatrix}.
+	\end{equation}
+	
+	\subsubsection{Fonction \texttt{calculeh.m}}
+	
+	\begin{verbatim}
+	function h = calculeh(X, a)
+	% X : matrice 2 x n, chaque colonne est [x_i ; y_i]
+	% a : vecteur colonne [a1; a2; a3; a4]
+	
+	x = X(1,:)';
+	y = X(2,:)';
+	
+	a1 = a(1);
+	a2 = a(2);
+	a3 = a(3);
+	a4 = a(4);
+	
+	h = a1 + a2*exp(-a4*(x-a3).^2) - y;
+	end
+	\end{verbatim}
+	
+	\subsection{Calcul de la matrice Jacobienne \texorpdfstring{$Dh(a)$}{Dh(a)}}
+	
+	La méthode de Gauss-Newton \cite{bjorck1996,gauss1809,nocedal2006} utilise la dérivée de $h(a)$.
+	Comme $h(a)$ est un vecteur, sa dérivée est une matrice : c'est la \textbf{Jacobienne}.
+	
+	Cette matrice contient toutes les dérivées partielles des composantes $h_i(a)$ par rapport aux paramètres $\alpha_1,\alpha_2,\alpha_3,\alpha_4$.
+	
+	\subsubsection{Résidu élémentaire}
+	
+	Pour chaque $i$, on a
+	\begin{equation}
+	h_i(a)=\alpha_1+\alpha_2 e^{-\alpha_4(x_i-\alpha_3)^2}-y_i.
+	\end{equation}
+	
+	Pour simplifier l'écriture, on pose :
+	\begin{equation}
+	E_i=e^{-\alpha_4(x_i-\alpha_3)^2}.
+	\end{equation}
+	
+	Donc
+	\begin{equation}
+	h_i(a)=\alpha_1+\alpha_2E_i-y_i.
+	\end{equation}
+	
+	\subsubsection{Dérivée par rapport à \texorpdfstring{$\alpha_1$}{a1}}
+	
+	\begin{equation}
+	\frac{\partial h_i}{\partial \alpha_1}=1.
+	\end{equation}
+	
+	\subsubsection{Dérivée par rapport à \texorpdfstring{$\alpha_2$}{a2}}
+	
+	\begin{equation}
+	\frac{\partial h_i}{\partial \alpha_2}=E_i=e^{-\alpha_4(x_i-\alpha_3)^2}.
+	\end{equation}
+	
+	\subsubsection{Dérivée par rapport à \texorpdfstring{$\alpha_3$}{a3}}
+	
+	On a
+	\begin{equation}
+	\frac{\partial E_i}{\partial \alpha_3}
+	=
+	e^{-\alpha_4(x_i-\alpha_3)^2}
+	\cdot
+	\frac{\partial}{\partial \alpha_3}\big(-\alpha_4(x_i-\alpha_3)^2\big).
+	\end{equation}
+	
+	Or
+	\begin{equation}
+	\frac{\partial}{\partial \alpha_3}(x_i-\alpha_3)^2
+	=
+	-2(x_i-\alpha_3).
+	\end{equation}
+	
+	Donc
+	\begin{equation}
+	\frac{\partial}{\partial \alpha_3}\big(-\alpha_4(x_i-\alpha_3)^2\big)
+	=
+	2\alpha_4(x_i-\alpha_3).
+	\end{equation}
+	
+	Par conséquent,
+	\begin{equation}
+	\frac{\partial E_i}{\partial \alpha_3}
+	=
+	2\alpha_4(x_i-\alpha_3)E_i.
+	\end{equation}
+	
+	Finalement,
+	\begin{equation}
+	\frac{\partial h_i}{\partial \alpha_3}
+	=
+	2\alpha_2\alpha_4(x_i-\alpha_3)E_i.
+	\end{equation}
+	
+	\subsubsection{Dérivée par rapport à \texorpdfstring{$\alpha_4$}{a4}}
+	
+	De la même façon,
+	\begin{equation}
+	\frac{\partial E_i}{\partial \alpha_4}
+	=
+	e^{-\alpha_4(x_i-\alpha_3)^2}
+	\cdot
+	\frac{\partial}{\partial \alpha_4}\big(-\alpha_4(x_i-\alpha_3)^2\big).
+	\end{equation}
+	
+	Comme
+	\begin{equation}
+	\frac{\partial}{\partial \alpha_4}\big(-\alpha_4(x_i-\alpha_3)^2\big)
+	=
+	-(x_i-\alpha_3)^2,
+	\end{equation}
+	on obtient
+	\begin{equation}
+	\frac{\partial E_i}{\partial \alpha_4}
+	=
+	-(x_i-\alpha_3)^2E_i.
+	\end{equation}
+	
+	Ainsi,
+	\begin{equation}
+	\frac{\partial h_i}{\partial \alpha_4}
+	=
+	-\alpha_2(x_i-\alpha_3)^2E_i.
+	\end{equation}
+	
+	\subsubsection{Forme finale de la Jacobienne}
+	
+	La $i$-ième ligne de la matrice Jacobienne est donc
+	\begin{equation}
+	\left(
+	1,\;
+	E_i,\;
+	2\alpha_2\alpha_4(x_i-\alpha_3)E_i,\;
+	-\alpha_2(x_i-\alpha_3)^2E_i
+	\right).
+	\end{equation}
+	
+	On en déduit
+	\begin{equation}
+	Dh(a)=
+	\begin{pmatrix}
+	1 & E_1 & 2\alpha_2\alpha_4(x_1-\alpha_3)E_1 & -\alpha_2(x_1-\alpha_3)^2E_1 \\
+	1 & E_2 & 2\alpha_2\alpha_4(x_2-\alpha_3)E_2 & -\alpha_2(x_2-\alpha_3)^2E_2 \\
+	\vdots & \vdots & \vdots & \vdots \\
+	1 & E_n & 2\alpha_2\alpha_4(x_n-\alpha_3)E_n & -\alpha_2(x_n-\alpha_3)^2E_n
+	\end{pmatrix}.
+	\end{equation}
+	
+	\subsubsection*{Fonction \texttt{calculeDh.m}}
+	
+	\begin{verbatim}
+	function J = calculeDh(X, a)
+	% J : Jacobienne de h, de taille n x 4
+	
+	x = X(1,:)';
+	
+	a2 = a(2);
+	a3 = a(3);
+	a4 = a(4);
+	
+	E = exp(-a4*(x-a3).^2);
+	
+	J = zeros(length(x),4);
+	
+	J(:,1) = 1;
+	J(:,2) = E;
+	J(:,3) = 2*a2*a4*(x-a3).*E;
+	J(:,4) = -a2*(x-a3).^2.*E;
+	end
+	\end{verbatim}
+	
+	\subsection{Validation numérique de la Jacobienne}
+	
+	Afin de vérifier que la Jacobienne calculée est correcte, nous procédons à la comparaison entre
+	
+	\begin{equation}
+	\frac{h(a+\varepsilon d)-h(a)}{\varepsilon}
+	\qquad \text{et} \qquad
+	Dh(a)d,
+	\end{equation}
+	où $d\in\mathbb{R}^4$ est une direction fixée et $\varepsilon$ est un petit nombre.
+	
+	\subsubsection{Interprétation}
+	
+	\begin{itemize}
+		\item Si l'erreur diminue quand $\varepsilon$ diminue, la Jacobienne est probablement correcte.
+		\item Si l'erreur reste grande, la Jacobienne est probablement incorrecte.
+	\end{itemize}
+	
+	\subsubsection*{Script Matlab de validation}
+	
+	\begin{verbatim}
+	a = [0; 1; 0; 0.5];
+	d = randn(4,1);
+	
+	eps_list = 10.^(-(1:12));
+	err = zeros(size(eps_list));
+	
+	for k = 1:length(eps_list)
+	epsi = eps_list(k);
+	
+	v1 = (calculeh(X, a + epsi*d) - calculeh(X, a))/epsi;
+	v2 = calculeDh(X, a)*d;
+	
+	err(k) = norm(v1 - v2);
+	end
+	
+	loglog(eps_list, err, 'o-');
+	grid on;
+	xlabel('\epsilon');
+	ylabel('Erreur');
+	title('Validation numérique de la Jacobienne');
+	\end{verbatim}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{validation_numerique.png}
+		\caption{Evolution de l'erreur en fonction de epsilon}
+		\label{fig:exo18-validation-jacobienne}
+	\end{figure}
+	
+	\paragraph{Remarques}
+	\begin{itemize}
+		\item[$\bullet$] Pour des $\epsilon$ pas trop petits, l’erreur décroît à peu près comme $\epsilon$
+		\item[$\bullet$] Si $\epsilon$ devient trop petit, les erreurs d’arrondi machine prennent le dessus et on observe une croissance au lieu d'une décroissance.
+	\end{itemize}
+	
+	\subsection{Implémentation Matlab du script principal}
+	
+	\subsubsection{Rappel : Principe de la méthode de Gauss-Newton}
+	
+	La fonction coût s'écrit sous la forme
+	\[
+	f(a)=\frac12\|h(a)\|^2.
+	\]
+	
+	La méthode de Gauss-Newton \cite{bjorck1996,nocedal2006} consiste à approcher localement $h$ par une fonction affine.
+	
+	Par une linéarisation (développement de Taylor au premier ordre) au voisinage d'un point $a_k$, on a
+	\begin{equation}
+	h(a_k+d)\approx h(a_k)+Dh(a_k)d.
+	\end{equation}
+	
+	En posant
+	\[
+	h_k=h(a_k), \qquad J_k=Dh(a_k),
+	\]
+	on remplace alors le problème initial par le problème approché
+	\begin{equation}
+	\min_{d\in\mathbb{R}^4}\frac12\|h_k+J_kd\|^2.
+	\end{equation}
+	
+	Ce nouveau problème est un problème de moindres carrés linéaire.
+	
+	En écrivant les équations normales, on obtient
+	\begin{equation}
+	J_k^T J_k d_k = -J_k^T h_k.
+	\end{equation}
+	
+	Donc la direction de Gauss-Newton est
+	\begin{equation}
+	d_k=-(J_k^T J_k)^{-1}J_k^T h_k,
+	\end{equation}
+	lorsque la matrice $J_k^TJ_k$ est inversible.
+	
+	Comme indiqué dans l'énoncé, on peut utiliser une version simple de l'algorithme en prenant
+	\begin{equation}
+	a_{k+1}=a_k+\rho d_k,
+	\end{equation}
+	avec par exemple
+	\[
+	\rho=0.1.
+	\]
+	
+	\subsubsection{Script Mathlab principal}
+	
+	\subsubsection*{Fonction \texttt{interpogaussienne.m}}
+	
+	\begin{verbatim}
+	function a = interpogaussienne(X, a0)
+	
+	a = a0(:);
+	maxit = 100;
+	tol = 1e-8;
+	rho = 0.1;
+	
+	for k = 1:maxit
+	h = calculeh(X, a);
+	J = calculeDh(X, a);
+	
+	% Direction de Gauss-Newton
+	d = -((J' * J) \ (J' * h));
+	
+	% Mise a jour
+	anew = a + rho*d;
+	
+	% Verification de a4
+	if anew(4) <= 0
+	warning('Le parametre a4 devient non positif.');
+	break;
+	end
+	
+	% Critere d'arret
+	if norm(anew - a) <= tol*(1 + norm(a))
+	a = anew;
+	break;
+	end
+	
+	a = anew;
+	end
+	
+	% Trace du resultat
+	x = X(1,:);
+	y = X(2,:);
+	
+	xx = linspace(min(x), max(x), 400);
+	yy = a(1) + a(2)*exp(-a(4)*(xx-a(3)).^2);
+	
+	figure;
+	plot(x, y, 'bo', 'MarkerFaceColor', 'b');
+	hold on;
+	plot(xx, yy, 'r-', 'LineWidth', 2);
+	grid on;
+	xlabel('x');
+	ylabel('y');
+	legend('Donnees', 'Gaussienne ajustee');
+	title('Ajustement d''une gaussienne par Gauss-Newton');
+	end
+	\end{verbatim}
+	
+	\subsection{Application : Test de la fonction interpogaussienne.m}
+	
+	\subsubsection*{Premier essai}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{exemplegaussienne01.png}
+		\caption{Données entrées : $a_0 = [0; 1; 0; 0.5]$ ; \\ 
+			$X = \begin{bmatrix} -1 & -0.9 & 0 & 0.1 & 0.2 & 1 & 2 & 3 & 0.6 \\ 0 & 0.1 & 0.2 & 0.5 & 0.49 & 0.45 & 0.1 & 0.1 & 0.6 \end{bmatrix}$}
+		\label{fig:exo18-premier-essai}
+	\end{figure}
+	
+	\medskip
+	\textbf{Sortie :}
+	\begin{verbatim}
+	a = [ 0.0702
+	0.5624
+	0.5775
+	2.4202 ]
+	\end{verbatim}
+	
+	\vspace{1cm}
+	
+	\subsubsection*{Deuxième essai : Données avec bruit}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{exemplegaussienne02.png}
+		\caption{Données d'entrée : \texttt{a0 = [0; 1; 0; 0.5]}. \\
+			Génération des échantillons : \texttt{X1 = 10*randn(1,100) - 1} et \\
+			\texttt{X = [X1 ; 2 + 3*exp(-0.05*X1.\^{}2) + rand(1,100)]}.}
+		\label{fig:exo18-deuxieme-essai}
+	\end{figure}
+	
+	\medskip
+	\textbf{Sortie :}
+	\begin{verbatim}
+	a = [ 2.4983
+	2.9048
+	0.0231
+	0.0496 ]
+	\end{verbatim}
+	
+
+\section{Références théoriques}
+
+Les méthodes de recherche linéaire utilisées dans ce rapport s'appuient sur la règle de diminution suffisante d'Armijo \cite{armijo1966} et sur les conditions de Wolfe \cite{wolfe1969,wolfe1971}.
+
+Pour une présentation moderne des méthodes du gradient, de la recherche linéaire et de la méthode de Newton locale, on pourra consulter \cite{nocedal2006,dennis1996}.
+
+La méthode de Gauss-Newton utilisée pour l'ajustement non linéaire s'inscrit dans le cadre des problèmes de moindres carrés non linéaires \cite{bjorck1996}.
+
+
+
+\bibliographystyle{alpha}
+\bibliography{references}
+
+
+%% Quelques liens utlis pour le referencement 
+%% ============================
+%% À placer dans le préambule si ce n'est pas déjà fait
+%% ============================
+%% \usepackage[hidelinks]{hyperref}
+%% \usepackage{url}
+%
+%% ============================
+%% Section à insérer dans le rapport
+%% ============================
+%\section{Vérification des références citées}
+%
+%Cette section regroupe, pour chaque référence utilisée dans le rapport, le lien à consulter ainsi que les pages les plus utiles pour vérifier précisément les notions citées.
+%
+%\subsection{Règle d'Armijo : diminution suffisante}
+%
+%\paragraph{Référence BibTeX :} \texttt{armijo1966}
+%
+%\paragraph{Lien :}
+%\url{https://msp.org/pjm/1966/16-1/pjm-v16-n1-p01-p.pdf}
+%
+%\paragraph{Pages à consulter :}
+%\begin{itemize}
+%	\item article entier : pages 1--3 ;
+%	\item en priorité : page 1.
+%\end{itemize}
+%
+%\paragraph{À vérifier :}
+%\begin{itemize}
+%	\item auteur : Larry Armijo ;
+%	\item titre : \emph{Minimization of Functions Having Lipschitz Continuous First Partial Derivatives} ;
+%	\item revue : \emph{Pacific Journal of Mathematics} ;
+%	\item année : 1966 ;
+%	\item idée utilisée dans le rapport : condition de diminution suffisante.
+%\end{itemize}
+%
+%\subsection{Conditions de Wolfe : article fondateur}
+%
+%\paragraph{Référence BibTeX :} \texttt{wolfe1969}
+%
+%\paragraph{Lien :}
+%\url{https://epubs.siam.org/doi/10.1137/1011036}
+%
+%\paragraph{Pages à consulter :}
+%\begin{itemize}
+%	\item article entier : pages 226--235.
+%\end{itemize}
+%
+%\paragraph{À vérifier :}
+%\begin{itemize}
+%	\item auteur : Philip Wolfe ;
+%	\item titre : \emph{Convergence Conditions for Ascent Methods} ;
+%	\item revue : \emph{SIAM Review} ;
+%	\item volume : 11 ;
+%	\item numéro : 2 ;
+%	\item année : 1969 ;
+%	\item notion utilisée dans le rapport : conditions de Wolfe.
+%\end{itemize}
+%
+%\subsection{Conditions de Wolfe : corrections}
+%
+%\paragraph{Référence BibTeX :} \texttt{wolfe1971}
+%
+%\paragraph{Lien :}
+%\url{https://epubs.siam.org/doi/10.1137/1013035}
+%
+%\paragraph{Pages à consulter :}
+%\begin{itemize}
+%	\item article entier : pages 185--188.
+%\end{itemize}
+%
+%\paragraph{À vérifier :}
+%\begin{itemize}
+%	\item auteur : Philip Wolfe ;
+%	\item titre : \emph{Convergence Conditions for Ascent Methods. II: Some Corrections} ;
+%	\item revue : \emph{SIAM Review} ;
+%	\item volume : 13 ;
+%	\item numéro : 2 ;
+%	\item année : 1971.
+%\end{itemize}
+%
+%\subsection{Ouvrage moderne de référence en optimisation numérique}
+%
+%\paragraph{Référence BibTeX :} \texttt{nocedal2006}
+%
+%\paragraph{Lien :}
+%\url{https://www.ime.unicamp.br/~pulino/MT404/TextosOnline/NocedalJ.pdf}
+%
+%\paragraph{Pages à consulter selon les notions :}
+%\begin{itemize}
+%	\item diminution suffisante / Armijo : pages 37--38 ;
+%	\item conditions de Wolfe : pages 39--41 ;
+%	\item méthode de Newton locale : pages 51--53 ;
+%	\item convergence quadratique de Newton : pages 52--53 ;
+%	\item méthode de Gauss--Newton : pages 260--262.
+%\end{itemize}
+%
+%\paragraph{À vérifier :}
+%\begin{itemize}
+%	\item auteurs : Jorge Nocedal et Stephen J. Wright ;
+%	\item titre : \emph{Numerical Optimization} ;
+%	\item édition : 2nd edition ;
+%	\item éditeur : Springer ;
+%	\item année : 2006.
+%\end{itemize}
+%
+%\subsection{Référence complémentaire pour la méthode de Newton}
+%
+%\paragraph{Référence BibTeX :} \texttt{dennis1996}
+%
+%\paragraph{Lien :}
+%\url{https://epubs.siam.org/doi/10.1137/1.9781611971200}
+%
+%\paragraph{Pages à consulter :}
+%\begin{itemize}
+%	\item convergence locale de Newton : page 89 ;
+%	\item théorème de Kantorovich et convergence : page 92 ;
+%	\item Newton pour la minimisation sans contrainte : page 99.
+%\end{itemize}
+%
+%\paragraph{À vérifier :}
+%\begin{itemize}
+%	\item auteurs : J. E. Dennis, Jr. et Robert B. Schnabel ;
+%	\item titre : \emph{Numerical Methods for Unconstrained Optimization and Nonlinear Equations} ;
+%	\item éditeur : SIAM ;
+%	\item année : 1996.
+%\end{itemize}
+%
+%\subsection{Référence spécialisée pour Gauss--Newton et les moindres carrés}
+%
+%\paragraph{Référence BibTeX :} \texttt{bjorck1996}
+%
+%\paragraph{Lien :}
+%\url{https://epubs.siam.org/doi/book/10.1137/1.9781611977950}
+%
+%\paragraph{Pages à consulter :}
+%\begin{itemize}
+%	\item chapitre 9 en général ;
+%	\item convergence locale de Gauss--Newton : page 345 ;
+%	\item versions amorties / variantes : pages 343--348.
+%\end{itemize}
+%
+%\paragraph{À vérifier :}
+%\begin{itemize}
+%	\item auteur : \AA ke Björck ;
+%	\item titre : \emph{Numerical Methods for Least Squares Problems} ;
+%	\item éditeur : SIAM ;
+%	\item année : 1996.
+%\end{itemize}
+%
+%\subsection{Référence historique pour la méthode du gradient}
+%
+%\paragraph{Référence BibTeX :} \texttt{cauchy1847}
+%
+%\paragraph{Lien :}
+%\url{https://cs.uwaterloo.ca/~y328yu/classics/cauchy-en.pdf}
+%
+%\paragraph{Pages à consulter :}
+%\begin{itemize}
+%	\item pages 1--2.
+%\end{itemize}
+%
+%\paragraph{À vérifier :}
+%\begin{itemize}
+%	\item auteur : Augustin-Louis Cauchy ;
+%	\item titre : \emph{Méthode générale pour la résolution des systèmes d'équations simultanées} ;
+%	\item année : 1847 ;
+%	\item idée historique : direction opposée au gradient.
+%\end{itemize}
+%
+%\subsection{Référence historique pour Newton--Kantorovich}
+%
+%\paragraph{Référence BibTeX :} \texttt{kantorovich1948}
+%
+%\paragraph{Lien :}
+%\url{https://cs.uwaterloo.ca/~y328yu/classics/Kantorovich48.pdf}
+%
+%\paragraph{Pages à consulter :}
+%\begin{itemize}
+%	\item introduction de l'article ;
+%	\item section 4 pour le théorème principal de convergence ;
+%	\item section 5 pour la méthode modifiée.
+%\end{itemize}
+%
+%\paragraph{À vérifier :}
+%\begin{itemize}
+%	\item auteur : L. V. Kantorovich ;
+%	\item titre : \emph{On Newton's Method for Functional Equations} ;
+%	\item période historique : 1948 / publication associée 1949 ;
+%	\item usage dans le rapport : ancrage théorique de la convergence de Newton.
+%\end{itemize}
+%
+%\subsection{Référence historique pour les moindres carrés et Gauss}
+%
+%\paragraph{Référence BibTeX :} \texttt{gauss1809}
+%
+%\paragraph{Lien :}
+%\url{https://archive.org/download/theoriamotuscor00gausgoog/theoriamotuscor00gausgoog.pdf}
+%
+%\paragraph{Pages à consulter :}
+%\begin{itemize}
+%	\item consultation historique générale de l'ouvrage ;
+%	\item à utiliser surtout comme référence historique.
+%\end{itemize}
+%
+%\paragraph{À vérifier :}
+%\begin{itemize}
+%	\item auteur : Carl Friedrich Gauss ;
+%	\item titre : \emph{Theoria Motus Corporum Coelestium in Sectionibus Conicis Solem Ambientium} ;
+%	\item année : 1809 ;
+%	\item usage dans le rapport : ancrage historique des moindres carrés et de Gauss--Newton.
+%\end{itemize}
+%
+%\section{Correspondance avec les exercices du rapport}
+%
+%\begin{itemize}
+%	\item \textbf{Exercice 13 :} consulter \texttt{armijo1966} et \texttt{nocedal2006}, pages 37--38.
+%	\item \textbf{Exercice 14 :} consulter \texttt{wolfe1969}, \texttt{wolfe1971} et \texttt{nocedal2006}, pages 39--41.
+%	\item \textbf{Exercice 15 :} consulter \texttt{nocedal2006}, pages 37--41.
+%	\item \textbf{Exercice 16 :} consulter \texttt{nocedal2006}, pages 51--53, et \texttt{dennis1996}, pages 89, 92 et 99.
+%	\item \textbf{Exercice 17 :} consulter \texttt{cauchy1847}, \texttt{nocedal2006} et \texttt{dennis1996}.
+%	\item \textbf{Exercice 18 :} consulter \texttt{nocedal2006}, pages 260--262, et \texttt{bjorck1996}, page 345.
+%\end{itemize}
+
+
+
+
+\end{document}
