@@ -56,3 +56,31 @@ This repository comes from a Scientific Computing practical project on numerical
 ## Author
 
 Kentsa Melatchi Rodes
+
+
+## Report and numerical figures
+
+The complete project report is available at:
+
+```text
+docs/optimization_report.pdf
+```
+
+The LaTeX source and bibliography are available in:
+
+```text
+docs/source_tex/
+```
+
+The numerical figures used in the report are stored in:
+
+```text
+results/figures/
+```
+
+These include the steepest-descent experiments, Wolfe-condition plots,
+gradient/Newton comparisons, Jacobian validation and Gauss–Newton fitting results.
+
+> Note: the report is preserved as the academic report produced for the project.
+> The technical corrections made before GitHub publication are documented separately
+> in `CORRECTIONS_APPLIQUEES.md`.
